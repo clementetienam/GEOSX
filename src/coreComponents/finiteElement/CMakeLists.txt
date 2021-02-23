@@ -53,6 +53,14 @@ blt_add_library( NAME                  finiteElement
 
 target_include_directories( finiteElement PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
 
+set( linkDirectories "" )
+set( linkLibraries "" )
+
+if( ENABLE_CUDA )
+    list( APPEND linkDirectories ${CUDA_TOOLKIT_ROOT_DIR}/lib64 )
+    list( APPEND linkLibraries cudart_static cudadevrt )
+endif()
+
 add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/kernelJITCompileCommands.hpp
                     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                     COMMAND python ${CMAKE_CURRENT_LIST_DIR}/../LvArray/src/jitti/generateCompileCommandsHeader.py
@@ -60,7 +68,9 @@ add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/include/kernelJITCompileCommands.
                                    --cpp ${CMAKE_CURRENT_LIST_DIR}/kernelInterface/kernelJIT.cpp
                                    --hpp ${CMAKE_BINARY_DIR}/include/kernelJITCompileCommands.hpp
                                    --include ${CMAKE_BINARY_DIR}/include
-                                   --linker ${CMAKE_CXX_COMPILER} )
+                                   --linker ${CMAKE_CXX_COMPILER}
+                                   --linkDirectories ${linkDirectories}
+                                   --linkLibraries ${linkLibraries} )
 
 geosx_add_code_checks( PREFIX finiteElement )
 

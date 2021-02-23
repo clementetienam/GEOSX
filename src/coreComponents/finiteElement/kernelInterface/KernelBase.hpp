@@ -519,7 +519,13 @@ real64 regionBasedKernelApplication( MeshLevel & mesh,
       string const outputObject = JITTI_OUTPUT_DIR "/" + hashString + ".o";
       string const outputLib = JITTI_OUTPUT_DIR "/" + hashString + ".so";
 
-      jitti::TemplateCompiler compiler( info.compileCommand, info.linker, info.linkArgs );
+    #if defined( GEOSX_USE_CUDA )
+      constexpr bool compilerIsNVCC = true;
+    #else
+      constexpr bool compilerIsNVCC = false;
+    #endif
+
+      jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
       jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
                                                                   templateParams,
                                                                   info.header,
