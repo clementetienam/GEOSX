@@ -27,7 +27,7 @@
 #include "mesh/ElementRegionManager.hpp"
 #include "mesh/MeshLevel.hpp"
 #include "rajaInterface/GEOS_RAJA_Interface.hpp"
-#include "LvArray/src/jitti/jitti.hpp"
+#include "LvArray/src/jitti/Cache.hpp"
 
 #if defined(__APPLE__)
 /// Use camp::tuple to hold constructor params.
@@ -453,7 +453,8 @@ real64 regionBasedKernelApplication( MeshLevel & mesh,
                                         constitutive::ConstitutiveBase &,
                                         FiniteElementBase const & );
 
-  static unordered_map< std::string, std::pair< jitti::TypedDynamicLibrary, JIT_FUNCTION_TYPE > > s_jittedFunctions;
+  jitti::CompilationInfo info = getCompilationInfo();
+  static jitti::Cache< JIT_FUNCTION_TYPE > s_jitCache( info.compilationTime, "./lib/jitti" );
 
   // save the maximum residual contribution for scaling residuals for convergence criteria.
   real64 maxResidualContribution = 0;
@@ -472,7 +473,8 @@ real64 regionBasedKernelApplication( MeshLevel & mesh,
                                                              &faceManager,
                                                              &kernelConstructorParamsTuple,
                                                              &finiteElementName,
-                                                             &kernelName]
+                                                             &kernelName,
+                                                             &info]
                                                               ( localIndex const targetRegionIndex, auto & elementSubRegion )
   {
     localIndex const numElems = elementSubRegion.size();
@@ -496,46 +498,14 @@ real64 regionBasedKernelApplication( MeshLevel & mesh,
     FiniteElementBase &
     subRegionFE = elementSubRegion.template getReference< FiniteElementBase >( finiteElementName );
 
-    jitti::CompilationInfo const info = getCompilationInfo();
+    info.templateParams = LvArray::system::demangleType< POLICY >() + ", " +
+                          LvArray::system::demangleType< SUBREGIONTYPE >() + ", " +
+                          LvArray::system::demangleType( *constitutiveRelation ) + ", " +
+                          LvArray::system::demangleType( subRegionFE ) + ", " +
+                          kernelName + ", " +
+                          LvArray::system::demangleType( kernelConstructorParamsTuple );
 
-    string const templateParams = LvArray::system::demangleType< POLICY >() + ", " +
-                                  LvArray::system::demangleType< SUBREGIONTYPE >() + ", " +
-                                  LvArray::system::demangleType( *constitutiveRelation ) + ", " +
-                                  LvArray::system::demangleType( subRegionFE ) + ", " +
-                                  kernelName + ", " +
-                                  LvArray::system::demangleType( kernelConstructorParamsTuple );
-
-    string const name = info.function + "< " + templateParams + " >";
-
-    auto const iter = s_jittedFunctions.find( name );
-    JIT_FUNCTION_TYPE jitFunction = nullptr;
-    if( iter != s_jittedFunctions.end() )
-    {
-      jitFunction = iter->second.second;
-    }
-    else
-    {
-      string const hashString = std::to_string( std::hash< string >{}( name ) );
-      string const outputObject = JITTI_OUTPUT_DIR "/" + hashString + ".o";
-      string const outputLib = JITTI_OUTPUT_DIR "/" + hashString + ".so";
-
-    #if defined( GEOSX_USE_CUDA )
-      constexpr bool compilerIsNVCC = true;
-    #else
-      constexpr bool compilerIsNVCC = false;
-    #endif
-
-      jitti::TemplateCompiler compiler( info.compileCommand, compilerIsNVCC, info.linker, info.linkArgs );
-      jitti::TypedDynamicLibrary dl = compiler.instantiateTemplate( info.function,
-                                                                  templateParams,
-                                                                  info.header,
-                                                                  outputObject,
-                                                                  outputLib );
-
-      jitFunction = dl.getSymbol< JIT_FUNCTION_TYPE >( name.c_str() );
-
-      s_jittedFunctions.emplace( name, std::pair< jitti::TypedDynamicLibrary, JIT_FUNCTION_TYPE >( std::move( dl ), jitFunction ) );
-    }
+    auto const & jitFunction = s_jitCache.getOrLoadOrCompile( info );
 
     maxResidualContribution =
       std::max( maxResidualContribution,
