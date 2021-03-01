@@ -345,7 +345,7 @@ real64 fooBar( NodeManager & nodeManager,
   CONSTITUTIVE_TYPE & castedConstitutiveRelation = dynamicCast< CONSTITUTIVE_TYPE & >( constitutiveBase );
 
   // 1) Combine the tuple containing the physics kernel specific constructor parameters with
-  // the parameters common to all phsyics kernels that use this interface,
+  // the parameters common to all physics kernels that use this interface,
   // 2) Instantiate the kernel.
   // note: have two options, using std::tuple and camp::tuple. Due to a bug in the OSX
   // implementation of std::tuple_cat, we must use camp on OSX. In the future, we should
