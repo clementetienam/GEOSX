@@ -26,7 +26,8 @@
 
 #include "common/TimingMacros.hpp"
 #include "constitutive/fluid/MultiFluidBase.hpp"
-#include "physicsSolvers/fluidFlow/CompositionalMultiphaseBase.hpp"
+#include "physicsSolvers/fluidFlow/CompositionalMultiphaseFVM.hpp"
+#include "physicsSolvers/fluidFlow/CompositionalMultiphaseHybridFVM.hpp"
 #include "physicsSolvers/fluidFlow/wells/CompositionalMultiphaseWell.hpp"
 
 namespace geosx
@@ -38,12 +39,28 @@ using namespace constitutive;
 CompositionalMultiphaseReservoir::CompositionalMultiphaseReservoir( const string & name,
                                                                     Group * const parent ):
   ReservoirSolverBase( name, parent )
-{
-  m_linearSolverParameters.get().mgr.strategy = "CompositionalMultiphaseReservoir";
-}
+{}
 
 CompositionalMultiphaseReservoir::~CompositionalMultiphaseReservoir()
 {}
+
+void CompositionalMultiphaseReservoir::postProcessInput()
+{
+  ReservoirSolverBase::postProcessInput();
+
+  if( dynamicCast< CompositionalMultiphaseFVM const * >( m_flowSolver ) )
+  {
+    m_linearSolverParameters.get().mgr.strategy = "CompositionalMultiphaseReservoirFVM";
+  }
+  else if( dynamicCast< CompositionalMultiphaseHybridFVM const * >( m_flowSolver ) )
+  {
+    m_linearSolverParameters.get().mgr.strategy = "CompositionalMultiphaseReservoirHybridFVM";
+  }
+  else
+  {
+    GEOSX_ERROR( "Unknown flow solver type for " << m_flowSolverName );
+  }
+}
 
 void CompositionalMultiphaseReservoir::addCouplingSparsityPattern( DomainPartition const & domain,
                                                                    DofManager const & dofManager,

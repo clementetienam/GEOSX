@@ -24,9 +24,9 @@
 #include "SinglePhaseReservoir.hpp"
 
 #include "common/TimingMacros.hpp"
-#include "physicsSolvers/fluidFlow/SinglePhaseBase.hpp"
-#include "physicsSolvers/fluidFlow/wells/SinglePhaseWell.hpp"
 #include "physicsSolvers/fluidFlow/SinglePhaseFVM.hpp"
+#include "physicsSolvers/fluidFlow/SinglePhaseHybridFVM.hpp"
+#include "physicsSolvers/fluidFlow/wells/SinglePhaseWell.hpp"
 
 namespace geosx
 {
@@ -41,6 +41,24 @@ SinglePhaseReservoir::SinglePhaseReservoir( const string & name,
 
 SinglePhaseReservoir::~SinglePhaseReservoir()
 {}
+
+void SinglePhaseReservoir::postProcessInput()
+{
+  ReservoirSolverBase::postProcessInput();
+
+  if( dynamicCast< SinglePhaseFVM< SinglePhaseBase > const * >( m_flowSolver ) )
+  {
+    m_linearSolverParameters.get().mgr.strategy = "SinglePhaseReservoirFVM";
+  }
+  else if( dynamicCast< SinglePhaseHybridFVM const * >( m_flowSolver ) )
+  {
+    m_linearSolverParameters.get().mgr.strategy = "SinglePhaseReservoirHybridFVM";
+  }
+  else
+  {
+    GEOSX_ERROR( "Unknown flow solver type for " << m_flowSolverName );
+  }
+}
 
 void SinglePhaseReservoir::setupSystem( DomainPartition & domain,
                                         DofManager & dofManager,
@@ -57,7 +75,7 @@ void SinglePhaseReservoir::setupSystem( DomainPartition & domain,
                                     setSparsity );
 
   // we need to set the dR_dAper CRS matrix in SinglePhaseFVM to handle the presence of fractures
-  if( dynamicCast< SinglePhaseFVM< SinglePhaseBase > * >( m_flowSolver ) )
+  if( dynamicCast< SinglePhaseFVM< SinglePhaseBase > const * >( m_flowSolver ) )
   {
     SinglePhaseFVM< SinglePhaseBase > * fvmSolver = dynamicCast< SinglePhaseFVM< SinglePhaseBase > * >( m_flowSolver );
     fvmSolver->setUpDflux_dApertureMatrix( domain, dofManager, localMatrix );
