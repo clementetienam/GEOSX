@@ -20,7 +20,6 @@
 
 #include "common/DataTypes.hpp"
 #include "common/TimingMacros.hpp"
-#include "constitutive/ConstitutiveManager.hpp"
 #include "fileIO/silo/SiloFile.hpp"
 #include "managers/ObjectManagerBase.hpp"
 #include "mpiCommunications/CommunicationTools.hpp"
