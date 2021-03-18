@@ -39,15 +39,7 @@ if( ENABLE_MPI )
   set( extraComponentsLinkList ${extraComponentsLinkList} mpi )
 endif()
 
-if( BUILD_OBJ_LIBS )
-  set (dependencyList common lvarray codingUtilities pugixml fileIO)
-else()
-  set( dependencyList 
-       common 
-       mpiCommunications
-       managers
-       codingUtilities)
-endif()
+set (dependencyList pugixml )
 
 if ( ENABLE_OPENMP )
   set( dependencyList ${dependencyList} openmp )
@@ -57,7 +49,7 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-set( dependencyList ${dependencyList} common conduit )
+set( dependencyList ${dependencyList} conduit )
 
 if( ENABLE_PYGEOSX )
   set( dependencyList ${dependencyList} pylvarray )
@@ -67,14 +59,12 @@ if( ENABLE_CALIPER )
   set( dependencyList ${dependencyList} caliper adiak )
 endif()
 
-blt_add_library( NAME                  dataRepository
-                 SOURCES               ${dataRepository_sources}
-                 HEADERS               ${dataRepository_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
+convert_filenames_to_full_paths(dataRepository_sources)
+convert_filenames_to_full_paths(dataRepository_headers)
 
-target_include_directories( dataRepository PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+set(CORE_SOURCES ${CORE_SOURCES} ${dataRepository_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${dataRepository_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX dataRepository )
 

@@ -6,7 +6,7 @@ set(testSources
     testGeosxTraits.cpp
    )
 
-set(dependencyList gtest codingUtilities RAJA)
+set(dependencyList gtest geosx_core RAJA)
 
 if ( ENABLE_OPENMP )
   set( dependencyList ${dependencyList} openmp )

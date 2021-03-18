@@ -90,28 +90,7 @@ if( ENABLE_VTK )
     list( APPEND managers_sources Outputs/VTKOutput.cpp )
 endif()
 
-if( BUILD_OBJ_LIBS )
-  set( dependencyList dataRepository fileIO optionparser RAJA linearAlgebra conduit )
-else()
-  set( dependencyList 
-       common 
-       fileIO
-       linearAlgebra
-       mesh
-       physicsSolvers
-       fileIO
-       mpiCommunications
-       codingUtilities
-       dataRepository
-       finiteVolume
-       meshUtilities
-       finiteElement
-       constitutive
-       optionparser
-       RAJA
-       mpiCommunications
-       conduit )
-endif()
+  set( dependencyList optionparser RAJA conduit )
 
 if( ENABLE_MATHPRESSO )
    set( dependencyList ${dependencyList} mathpresso )
@@ -133,14 +112,12 @@ if ( ENABLE_MKL )
   set( dependencyList ${dependencyList} mkl )
 endif()
 
-blt_add_library( NAME                  managers
-                 SOURCES               ${managers_sources}
-                 HEADERS               ${managers_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
+convert_filenames_to_full_paths(managers_sources)
+convert_filenames_to_full_paths(managers_headers)
 
-target_include_directories( managers PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+set(CORE_SOURCES ${CORE_SOURCES} ${managers_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${managers_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 add_subdirectory( unitTests )
 

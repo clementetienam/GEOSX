@@ -1,5 +1,3 @@
-add_subdirectory (GEOSX_PTP)
-
 #
 # Specify solver headers
 #
@@ -108,30 +106,12 @@ set( physicsSolvers_sources
      surfaceGeneration/EmbeddedSurfaceGenerator.cpp
      )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList common constitutive dataRepository linearAlgebra )
-else()
-  set( dependencyList 
-       common
-       linearAlgebra
-       lvarray
-       mesh
-       mpiCommunications
-       managers
-       codingUtilities
-       dataRepository
-       finiteVolume
-       finiteElement
-       meshUtilities
-       constitutive
-     )
-endif()
-
-
 set( externalComponentDeps "" )
 if( ENABLE_GEOSX_PTP )
   message(STATUS "Adding GEOSX_PTP to physics solver dependencies")
-  list( APPEND externalComponentDeps GEOSX_PTP )
+  #list( APPEND externalComponentDeps GEOSX_PTP )
+  list( APPEND physicsSolvers_headers GEOSX_PTP/ParallelTopologyChange.hpp )
+  list( APPEND physicsSolvers_sources GEOSX_PTP/ParallelTopologyChange.cpp )
 endif()
 
 if ( ENABLE_OPENMP )
@@ -142,18 +122,12 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  physicsSolvers
-                 SOURCES               ${physicsSolvers_sources}
-                 HEADERS               ${physicsSolvers_headers}
-                 DEPENDS_ON            ${dependencyList} ${externalComponentDeps}
-                 OBJECT                ${buildAsObj}
-               )
+convert_filenames_to_full_paths(physicsSolvers_sources)
+convert_filenames_to_full_paths(physicsSolvers_headers)
 
-target_include_directories( physicsSolvers PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents )
-if( externalComponentDeps )
-  target_include_directories( physicsSolvers PUBLIC ${CMAKE_SOURCE_DIR}/externalComponents)
-endif()
-
+set(CORE_SOURCES ${CORE_SOURCES} ${physicsSolvers_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${physicsSolvers_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} ${externalComponentDeps} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX physicsSolvers )
 

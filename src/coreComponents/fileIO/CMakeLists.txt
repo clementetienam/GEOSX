@@ -16,21 +16,7 @@ set( fileIO_sources
      silo/SiloFile.cpp
      schema/schemaUtilities.cpp )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList common silo hdf5 pugixml RAJA  )
-else()
-  set( dependencyList 
-       lvarray
-       common
-       mpiCommunications
-       managers
-       codingUtilities
-       dataRepository
-       constitutive
-       silo
-       pugixml
-       RAJA  )
-endif()
+set( dependencyList silo hdf5 pugixml RAJA  )
 
 if( ENABLE_MPI )
   add_subdirectory(coupling/hdf5_interface)
@@ -67,15 +53,13 @@ endif()
 if( ENABLE_CALIPER )
   set( dependencyList ${dependencyList} caliper adiak )
 endif()
-
-blt_add_library( NAME                  fileIO
-                 SOURCES               ${fileIO_sources}
-                 HEADERS               ${fileIO_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
                
-target_include_directories( fileIO PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+convert_filenames_to_full_paths(fileIO_sources)
+convert_filenames_to_full_paths(fileIO_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${fileIO_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${fileIO_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX fileIO )
 

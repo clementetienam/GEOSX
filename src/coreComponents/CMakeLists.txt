@@ -49,9 +49,17 @@ if( NOT GEOSX_BUILD_SHARED_LIBS )
   set (geosx_core_libs "${geosx_core_list}" CACHE INTERNAL "")
 endif()
 
+
+
+set(CORE_SOURCES "")
+set(CORE_HEADERS "")
+set(CORE_DEPENDENCIES "")
+
 foreach( lib ${subdirs} )
     add_subdirectory(${lib})
 endforeach()
+
+message ("************************ Contents of CORE_SOURCES is ${CORE_SOURCES}")
 
 set( extraComponentsLinkList "" )
 
@@ -75,20 +83,33 @@ else()
   set( CSL_TYPE STATIC )
 endif()
 
-if( BUILD_OBJ_LIBS )
-  blt_add_library ( NAME geosx_core
-                    SOURCES dummy.cpp
-                    DEPENDS_ON  ${coreLibs}
-                    SHARED ${GEOSX_BUILD_SHARED_BOOL}
-                  )
-else()
-  blt_combine_static_libraries( NAME          geosx_core
-                                SOURCE_LIBS   ${coreLibs}
-                                LIB_TYPE ${CSL_TYPE}
-                                LINK_PREPEND  ${GEOSX_LINK_PREPEND_FLAG}
-                                LINK_POSTPEND ${GEOSX_LINK_POSTPEND_FLAG}
-                              )
-endif()
+#if( BUILD_OBJ_LIBS )
+#  blt_add_library ( NAME geosx_core
+#                    SOURCES dummy.cpp
+#                    DEPENDS_ON  ${coreLibs}
+#                    SHARED ${GEOSX_BUILD_SHARED_BOOL}
+#                  )
+#else()
+#  blt_combine_static_libraries( NAME          geosx_core
+#                                SOURCE_LIBS   ${coreLibs}
+#                                LIB_TYPE ${CSL_TYPE}
+#                                LINK_PREPEND  ${GEOSX_LINK_PREPEND_FLAG}
+#                                LINK_POSTPEND ${GEOSX_LINK_POSTPEND_FLAG}
+#                              )
+#endif()
+
+
+list (REMOVE_DUPLICATES CORE_DEPENDENCIES)
+message ("************************ Contents of CORE_DEPENDENCIES is ${CORE_DEPENDENCIES}")
+
+blt_add_library ( NAME geosx_core
+                  SOURCES ${CORE_SOURCES}
+                  HEADERS ${CORE_HEADERS}
+                  DEPENDS_ON ${CORE_DEPENDENCIES}
+                  SHARED ${GEOSX_BUILD_SHARED_BOOL}
+                )
+
+
 
 # To install the library with the runtime path used during the building
 set_target_properties( geosx_core PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE )
@@ -97,7 +118,15 @@ set_target_properties( geosx_core PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE )
 install(TARGETS geosx_core LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
 target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+foreach( lib ${subdirs} )
+  if( NOT ( ${lib} STREQUAL "math" OR ${lib} STREQUAL "python" ) )
+    target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents/${lib} )
+  endif()
+endforeach()
 
+if( ENABLE_GEOSX_PTP )
+  target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/externalComponents)
+endif()
 
 geosx_add_code_checks( PREFIX coreComponents 
                        EXCLUDES cmake )

@@ -23,20 +23,7 @@ set(mpiCommunications_sources
     SpatialPartition.cpp
    )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList fileIO common trilinos )
-else()
-  set( dependencyList 
-       lvarray
-       common
-       mesh
-       managers
-       codingUtilities
-       dataRepository
-        )
-endif()
-
-
+set( dependencyList trilinos )
 
 if( ENABLE_OPENMP )
     set( dependencyList ${dependencyList} openmp )
@@ -49,15 +36,13 @@ endif()
 if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
-
-blt_add_library( NAME                  mpiCommunications
-                 SOURCES               ${mpiCommunications_sources}
-                 HEADERS               ${mpiCommunications_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
                
-target_include_directories( mpiCommunications PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+convert_filenames_to_full_paths(mpiCommunications_sources)
+convert_filenames_to_full_paths(mpiCommunications_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${mpiCommunications_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${mpiCommunications_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX mpiCommunications )
 

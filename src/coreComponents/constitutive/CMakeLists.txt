@@ -108,19 +108,6 @@ set( constitutive_sources
      capillaryPressure/VanGenuchtenCapillaryPressure.cpp
    )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList dataRepository)
-else()
-  set( dependencyList 
-       common
-       managers
-       codingUtilities
-       dataRepository
-     )
-endif()
-
-
-
 if( ENABLE_PVTPackage )
     set( constitutive_headers
          ${constitutive_headers}
@@ -144,15 +131,13 @@ endif()
 if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
-
-blt_add_library( NAME                  constitutive
-                 SOURCES               ${constitutive_sources}
-                 HEADERS               ${constitutive_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
                
-target_include_directories( constitutive PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents )
+convert_filenames_to_full_paths(constitutive_sources)
+convert_filenames_to_full_paths(constitutive_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${constitutive_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${constitutive_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 add_subdirectory( unitTests )
 

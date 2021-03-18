@@ -50,23 +50,9 @@ set(mesh_sources
     ToElementRelation.cpp
    )
 
-if( BUILD_OBJ_LIBS)
-  set(dependencyList managers metis)
-else()
-  set(dependencyList
-      common
-      metis
-      codingUtilities
-      meshUtilities
-      mpiCommunications
-      constitutive
-      finiteElement
-      dataRepository
-      lvarray
-      managers
-      fileIO
-      )
-endif()
+set(dependencyList
+    metis
+    )
 
 
 if( ENABLE_OPENMP )
@@ -77,13 +63,11 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  mesh
-                 SOURCES               ${mesh_sources}
-                 HEADERS               ${mesh_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
-               
-target_include_directories( mesh PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+convert_filenames_to_full_paths(mesh_sources)
+convert_filenames_to_full_paths(mesh_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${mesh_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${mesh_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX mesh )

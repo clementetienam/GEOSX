@@ -49,23 +49,12 @@ set( linearAlgebra_sources
      utilities/LAIHelperFunctions.cpp
      DofManager.cpp )
 
-if( BUILD_OBJ_LIBS )
-  set( dependencyList common blas lapack RAJA managers)
-else()
   set( dependencyList 
-       common 
        blas
        lapack
        RAJA
-       mesh
        lvarray
-       managers
-       mpiCommunications
-       finiteVolume
-       codingUtilities
-       finiteElement
       )
-endif()
 
 
 if( ENABLE_MPI )
@@ -166,13 +155,12 @@ if ( ENABLE_CUDA )
     set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  linearAlgebra
-                 SOURCES               ${linearAlgebra_sources}
-                 HEADERS               ${linearAlgebra_headers}
-                 DEPENDS_ON            ${dependencyList}
-               )
+convert_filenames_to_full_paths(linearAlgebra_sources)
+convert_filenames_to_full_paths(linearAlgebra_headers)
 
-target_include_directories( linearAlgebra PUBLIC ${CMAKE_CURRENT_LIST_DIR} )
+set(CORE_SOURCES ${CORE_SOURCES} ${linearAlgebra_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${linearAlgebra_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX linearAlgebra )
 

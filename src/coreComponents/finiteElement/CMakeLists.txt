@@ -28,18 +28,6 @@ set( finiteElement_sources
      FiniteElementDiscretizationManager.cpp
    )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList dataRepository codingUtilities)
-else()
-  set( dependencyList 
-       common
-       mesh
-       codingUtilities
-       dataRepository
-       constitutive
-      )
-endif()
-
 if( ENABLE_OPENMP )
     set( dependencyList ${dependencyList} openmp )
 endif()
@@ -48,14 +36,12 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  finiteElement
-                 SOURCES               ${finiteElement_sources}
-                 HEADERS               ${finiteElement_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
-               
-target_include_directories( finiteElement PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+convert_filenames_to_full_paths(finiteElement_sources)
+convert_filenames_to_full_paths(finiteElement_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${finiteElement_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${finiteElement_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX finiteElement )
 

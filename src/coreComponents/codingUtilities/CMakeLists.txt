@@ -19,16 +19,11 @@ set( codingUtilities_sources
      StringUtilities.cpp
    )
 
-set( dependencyList common lvarray )
+convert_filenames_to_full_paths(codingUtilities_sources)
+convert_filenames_to_full_paths(codingUtilities_headers)
 
-blt_add_library( NAME                  codingUtilities
-                 SOURCES               ${codingUtilities_sources}
-                 HEADERS               ${codingUtilities_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
-
-target_include_directories( codingUtilities PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+set(CORE_SOURCES ${CORE_SOURCES} ${codingUtilities_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${codingUtilities_headers} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX codingUtilities )
 

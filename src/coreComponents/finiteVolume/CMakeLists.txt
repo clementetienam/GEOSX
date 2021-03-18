@@ -34,20 +34,6 @@ set( finiteVolume_sources
      HybridMimeticDiscretization.cpp
    )
 
-if ( BUILD_OBJ_LIBS )
-  set( dependencyList dataRepository codingUtilities managers)
-else()
-  set( dependencyList 
-       common
-       mesh
-       mpiCommunications
-       managers
-       codingUtilities
-       dataRepository
-       meshUtilities
-      )
-endif()
-
 if ( ENABLE_OPENMP )
   set( dependencyList ${dependencyList} openmp )
 endif()
@@ -56,14 +42,12 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  finiteVolume
-                 SOURCES               ${finiteVolume_sources}
-                 HEADERS               ${finiteVolume_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
-               
-target_include_directories( finiteVolume PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+convert_filenames_to_full_paths(finiteVolume_sources)
+convert_filenames_to_full_paths(finiteVolume_headers)
+
+set(CORE_SOURCES ${CORE_SOURCES} ${finiteVolume_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${finiteVolume_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 add_subdirectory( unitTests )
 

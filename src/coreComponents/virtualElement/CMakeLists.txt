@@ -12,12 +12,6 @@ set( virtualElement_sources
   ConformingVirtualElementOrder1.cpp
   )
 
-if( BUILD_OBJ_LIBS)
-  set( dependencyList dataRepository codingUtilities)
-else()
-  set( dependencyList mesh)
-endif()
-
 if( ENABLE_OPENMP )
     set( dependencyList ${dependencyList} openmp )
 endif()
@@ -26,14 +20,12 @@ if ( ENABLE_CUDA )
   set( dependencyList ${dependencyList} cuda )
 endif()
 
-blt_add_library( NAME                  virtualElement
-                 SOURCES               ${virtualElement_sources}
-                 HEADERS               ${virtualElement_headers}
-                 DEPENDS_ON            ${dependencyList}
-                 OBJECT                ${buildAsObj}
-               )
+convert_filenames_to_full_paths(virtualElement_sources)
+convert_filenames_to_full_paths(virtualElement_headers)
 
-target_include_directories( virtualElement PUBLIC ${CMAKE_SOURCE_DIR}/coreComponents)
+set(CORE_SOURCES ${CORE_SOURCES} ${virtualElement_sources} PARENT_SCOPE)
+set(CORE_HEADERS ${CORE_HEADERS} ${virtualElement_headers} PARENT_SCOPE)
+set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX virtualElement )
 
