@@ -63,6 +63,7 @@ EpetraMatrix & EpetraMatrix::operator=( EpetraMatrix const & src )
       m_assembled = true;
       m_closed = true;
     }
+    m_dofManager = src.dofManager();
   }
   return *this;
 }
@@ -74,9 +75,7 @@ EpetraMatrix & EpetraMatrix::operator=( EpetraMatrix && src ) noexcept
     std::swap( m_matrix, src.m_matrix );
     std::swap( m_dst_map, src.m_dst_map );
     std::swap( m_src_map, src.m_src_map );
-    std::swap( m_dofManager, src.m_dofManager );
-    std::swap( m_closed, src.m_closed );
-    std::swap( m_assembled, src.m_assembled );
+    MatrixBase::operator=( std::move( src ) );
   }
   return *this;
 }
@@ -660,28 +659,26 @@ void EpetraMatrix::extractDiagonal( EpetraVector & dst ) const
   GEOSX_LAI_ASSERT( dst.ready() );
   GEOSX_LAI_ASSERT_EQ( dst.localSize(), numLocalRows() );
 
-  // This doesn't work because ExtractDiagonalCopy takes an Epetra_Vector,
-  // not Epetra_FEVector which is unrelated (ugh):
-  // GEOSX_LAI_CHECK_ERROR( m_matrix->ExtractDiagonalCopy( dst.unwrapped() ) );
+  // Need to construct a wrapper, because ExtractDiagonalCopy does not accept an Epetra_FEVector
+  Epetra_Vector view( View, dst.unwrapped().Map(), dst.extractLocalVector() );
+  GEOSX_LAI_CHECK_ERROR( m_matrix->ExtractDiagonalCopy( view ) );
+}
 
-  dst.zero();
-  real64 * const values = dst.extractLocalVector();
+void EpetraMatrix::getRowSums( EpetraVector & dst ) const
+{
+  getInvRowSums( dst );
+  dst.reciprocal();
+}
 
-  int length;
-  int * indices_ptr;
-  double * values_ptr;
+void EpetraMatrix::getInvRowSums( EpetraVector & dst ) const
+{
+  GEOSX_LAI_ASSERT( ready() );
+  GEOSX_LAI_ASSERT( dst.ready() );
+  GEOSX_LAI_ASSERT_EQ( dst.localSize(), numLocalRows() );
 
-  for( localIndex localRow = 0; localRow < numLocalRows(); ++localRow )
-  {
-    GEOSX_LAI_CHECK_ERROR( m_matrix->ExtractMyRowView( localRow, length, values_ptr, indices_ptr ) );
-    for( int j = 0; j < length; ++j )
-    {
-      if( indices_ptr[j] == localRow )
-      {
-        values[localRow] = values_ptr[j];
-      }
-    }
-  }
+  // Need to construct a wrapper, because InvRowSums does not accept an Epetra_FEVector
+  Epetra_Vector view( View, dst.unwrapped().Map(), dst.extractLocalVector() );
+  GEOSX_LAI_CHECK_ERROR( m_matrix->InvRowSums( view ) );
 }
 
 Epetra_FECrsMatrix const & EpetraMatrix::unwrapped() const

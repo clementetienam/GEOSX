@@ -51,8 +51,8 @@ void WrapperBase::resize()
 
 void WrapperBase::copyWrapperAttributes( WrapperBase const & source )
 {
-  GEOSX_ERROR_IF( source.m_name != m_name,
-                  "Tried to clone wrapper attributes from a wrapper with a different name" );
+//  GEOSX_ERROR_IF_NE_MSG( source.m_name, m_name,
+//                         "Tried to clone wrapper attributes from a wrapper with a different name" );
   m_sizedFromParent = source.m_sizedFromParent;
   m_restart_flags = source.m_restart_flags;
   m_plotLevel  = source.m_plotLevel;
@@ -65,7 +65,7 @@ string WrapperBase::getPath() const
   // In the Conduit node heirarchy everything begins with 'Problem', we should change it so that
   // the ProblemManager actually uses the root Conduit Node but that will require a full rebaseline.
   string const noProblem = m_conduitNode.path().substr( sizeof( "Problem" ) -1 );
-  return noProblem == "" ? "/" : noProblem;
+  return noProblem.empty() ? "/" : noProblem;
 }
 
 string WrapperBase::dumpInputOptions( bool const outputHeader ) const

@@ -62,6 +62,7 @@ PetscMatrix & PetscMatrix::operator=( PetscMatrix const & src )
       m_assembled = true;
       m_closed = true;
     }
+    m_dofManager = src.dofManager();
   }
   return *this;
 }
@@ -71,9 +72,7 @@ PetscMatrix & PetscMatrix::operator=( PetscMatrix && src ) noexcept
   if( &src != this )
   {
     std::swap( m_mat, src.m_mat );
-    std::swap( m_dofManager, src.m_dofManager );
-    std::swap( m_closed, src.m_closed );
-    std::swap( m_assembled, src.m_assembled );
+    MatrixBase::operator=( std::move( src ) );
   }
   return *this;
 }
@@ -752,6 +751,15 @@ void PetscMatrix::extractDiagonal( PetscVector & dst ) const
   GEOSX_LAI_ASSERT_EQ( dst.localSize(), numLocalRows() );
 
   GEOSX_LAI_CHECK_ERROR( MatGetDiagonal( m_mat, dst.unwrapped() ) );
+}
+
+void PetscMatrix::getRowSums( PetscMatrix::Vector & dst ) const
+{
+  GEOSX_LAI_ASSERT( ready() );
+  GEOSX_LAI_ASSERT( dst.ready() );
+  GEOSX_LAI_ASSERT_EQ( dst.localSize(), numLocalRows() );
+
+  GEOSX_LAI_CHECK_ERROR( MatGetRowSum( m_mat, dst.unwrapped() ) );
 }
 
 Mat & PetscMatrix::unwrapped()

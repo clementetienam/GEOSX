@@ -268,6 +268,10 @@ public:
 
   virtual void extractDiagonal( EpetraVector & dst ) const override;
 
+  virtual void getRowSums( Vector & dst ) const override;
+
+  virtual void getInvRowSums( Vector & dst ) const override;
+
   /**
    * @copydoc MatrixBase<EpetraMatrix,EpetraVector>::numGlobalRows
    */

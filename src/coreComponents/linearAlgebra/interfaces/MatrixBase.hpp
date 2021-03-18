@@ -67,11 +67,6 @@ protected:
   using Base::numGlobalCols;
 
   /**
-   * @brief Constructs a matrix in default state
-   */
-  MatrixBase() = default;
-
-  /**
    * @name Status query methods
    */
   ///@{
@@ -220,12 +215,14 @@ protected:
   /**
    * @brief Create parallel matrix from a local CRS matrix.
    * @param localMatrix The input local matrix.
+   * @param numLocalColumns number of local columns (not available from localMatrix in general)
    * @param comm The MPI communicator to use.
    *
    * @note Copies values, so that @p localMatrix does not need to retain its values after the call.
    * @todo Replace generic implementation with more efficient ones in each package.
    */
   virtual void create( CRSMatrixView< real64 const, globalIndex const > const & localMatrix,
+                       localIndex const numLocalColumns,
                        MPI_Comm const & comm )
   {
     localMatrix.move( LvArray::MemorySpace::host, false );
@@ -237,7 +234,7 @@ protected:
     }
 
     createWithLocalSize( localMatrix.numRows(),
-                         localMatrix.numRows(),
+                         numLocalColumns,
                          maxEntriesPerRow,
                          comm );
 
@@ -249,6 +246,19 @@ protected:
       insert( localRow + rankOffset, localMatrix.getColumns( localRow ), localMatrix.getEntries( localRow ) );
     }
     close();
+  }
+
+  /**
+   * @brief Create parallel matrix from a local CRS matrix.
+   * @param localMatrix The input local matrix.
+   * @param comm The MPI communicator to use.
+   *
+   * @note Copies values, so that @p localMatrix does not need to retain its values after the call.
+   */
+  virtual void create( CRSMatrixView< real64 const, globalIndex const > const & localMatrix,
+                       MPI_Comm const & comm )
+  {
+    create( localMatrix, localMatrix.numRows(), comm );
   }
 
   ///@}
@@ -761,6 +771,23 @@ protected:
    * @param dst the target vector, must have the same row partitioning as @p this
    */
   virtual void extractDiagonal( Vector & dst ) const = 0;
+
+  /**
+   * @brief Populate a vector with row sums of @p this.
+   * @param dst the target vector, must have the same row partitioning as @p this
+   */
+  virtual void getRowSums( Vector & dst ) const = 0;
+
+  /**
+   * @brief Populate a vector with inverse row sums of @p this.
+   * @param dst the target vector, must have the same row partitioning as @p this
+   * @note this method exists because Epetra provides it directly instead of RowSums.
+   */
+  virtual void getInvRowSums( Vector & dst ) const
+  {
+    getRowSums( dst );
+    dst.reciprocal();
+  }
 
   /**
    * @brief Returns the index of the first global row owned by that processor.
