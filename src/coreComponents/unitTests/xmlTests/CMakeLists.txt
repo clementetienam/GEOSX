@@ -10,12 +10,7 @@ set(gtest_geosx_tests
 # Add gtest C++ based tests
 #
 set( dependencyList gtest optionparser)
-
-if ( GEOSX_BUILD_SHARED_LIBS )
-  set (dependencyList ${dependencyList} geosx_core)
-else()
-  set (dependencyList ${dependencyList} ${geosx_core_libs} )
-endif()
+set (dependencyList ${dependencyList} geosx_core)
 
 if ( ENABLE_MPI )
   set ( dependencyList ${dependencyList} mpi )
