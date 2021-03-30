@@ -63,5 +63,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${common_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX common )
-
-add_subdirectory( unitTests )

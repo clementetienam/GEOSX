@@ -9,6 +9,8 @@ set(testSources
 set( dependencyList gtest )
 set (dependencyList ${dependencyList} geosx_core)
 
+blt_print_target_properties(TARGET geosx_core)
+
 if ( ENABLE_MPI )
   set ( dependencyList ${dependencyList} mpi )
 endif()

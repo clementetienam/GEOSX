@@ -119,6 +119,4 @@ set(CORE_SOURCES ${CORE_SOURCES} ${managers_sources} PARENT_SCOPE)
 set(CORE_HEADERS ${CORE_HEADERS} ${managers_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
-add_subdirectory( unitTests )
-
 geosx_add_code_checks( PREFIX managers )

@@ -130,6 +130,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${physicsSolvers_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} ${externalComponentDeps} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX physicsSolvers )
-
-add_subdirectory( fluidFlow/unitTests )
-add_subdirectory( fluidFlow/wells/unitTests )

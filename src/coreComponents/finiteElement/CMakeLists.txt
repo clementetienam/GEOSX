@@ -44,6 +44,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${finiteElement_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX finiteElement )
-
-add_subdirectory( unitTests )
-

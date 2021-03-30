@@ -62,5 +62,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${fileIO_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX fileIO )
-
-add_subdirectory(unitTests)

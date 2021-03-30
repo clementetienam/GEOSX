@@ -59,7 +59,7 @@ foreach( lib ${subdirs} )
     add_subdirectory(${lib})
 endforeach()
 
-message ("************************ Contents of CORE_SOURCES is ${CORE_SOURCES}")
+#message ("************************ Contents of CORE_SOURCES is ${CORE_SOURCES}")
 
 set( extraComponentsLinkList "" )
 
@@ -107,9 +107,10 @@ blt_add_library ( NAME geosx_core
                   HEADERS ${CORE_HEADERS}
                   DEPENDS_ON ${CORE_DEPENDENCIES}
                   SHARED ${GEOSX_BUILD_SHARED_BOOL}
+                  OBJECT ${buildAsObj}
                 )
 
-
+#blt_print_target_properties(TARGET geosx_core)
 
 # To install the library with the runtime path used during the building
 set_target_properties( geosx_core PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE )
@@ -127,6 +128,27 @@ endforeach()
 if( ENABLE_GEOSX_PTP )
   target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/externalComponents)
 endif()
+
+if ( ENABLE_PVTPackage )
+  target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/externalComponents/PVTPackage/PVTPackage/source)
+endif()
+
+if( ENABLE_PAMELA )
+  target_include_directories( geosx_core PUBLIC ${CMAKE_SOURCE_DIR}/externalComponents/PAMELA/PAMELA/source)
+endif()
+
+# Add test subdirectories
+foreach( lib ${subdirs} )
+  if( NOT ( ${lib} STREQUAL "math" 
+            OR ${lib} STREQUAL "python" 
+            OR ${lib} STREQUAL "mesh"
+            OR ${lib} STREQUAL "physicsSolvers") )
+    add_subdirectory(${lib}/unitTests)
+  endif()
+endforeach()
+add_subdirectory( physicsSolvers/fluidFlow/unitTests )
+add_subdirectory( physicsSolvers/fluidFlow/wells/unitTests )
+
 
 geosx_add_code_checks( PREFIX coreComponents 
                        EXCLUDES cmake )

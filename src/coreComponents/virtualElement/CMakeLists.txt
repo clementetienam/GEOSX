@@ -28,5 +28,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${virtualElement_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX virtualElement )
-
-add_subdirectory( unitTests )

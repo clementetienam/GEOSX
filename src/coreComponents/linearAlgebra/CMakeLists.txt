@@ -164,6 +164,4 @@ set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks( PREFIX linearAlgebra )
 
-add_subdirectory( unitTests )
-
 message( "Leaving /src/coreComponents/linearAlgebra/CMakeLists.txt")

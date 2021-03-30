@@ -139,6 +139,4 @@ set(CORE_SOURCES ${CORE_SOURCES} ${constitutive_sources} PARENT_SCOPE)
 set(CORE_HEADERS ${CORE_HEADERS} ${constitutive_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
-add_subdirectory( unitTests )
-
 geosx_add_code_checks( PREFIX constitutive )

@@ -26,5 +26,3 @@ set(CORE_SOURCES ${CORE_SOURCES} ${codingUtilities_sources} PARENT_SCOPE)
 set(CORE_HEADERS ${CORE_HEADERS} ${codingUtilities_headers} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX codingUtilities )
-
-add_subdirectory(tests)

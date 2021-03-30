@@ -45,5 +45,3 @@ set(CORE_HEADERS ${CORE_HEADERS} ${mpiCommunications_headers} PARENT_SCOPE)
 set(CORE_DEPENDENCIES ${CORE_DEPENDENCIES} ${dependencyList} PARENT_SCOPE)
 
 geosx_add_code_checks(PREFIX mpiCommunications )
-
-add_subdirectory( unitTests )
