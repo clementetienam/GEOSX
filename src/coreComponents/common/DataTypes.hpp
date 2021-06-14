@@ -582,7 +582,8 @@ public:
     globalIndex_array3d_id,//!< globalIndex_array3d_id
     real32_array3d_id,     //!< real32_array3d_id
     real64_array3d_id,     //!< real64_array3d_id
-    real64_array3d_kji_id,  //!< real64_array3d_kji_id
+    real64_array3d_jki_id, //!< real64_array3d_jki_id
+    real64_array3d_kji_id, //!< real64_array3d_kji_id
 
     string_id,           //!< string_id
     Path_id,             //!< Path_id
@@ -628,6 +629,7 @@ public:
       { std::type_index( typeid(globalIndex_array3d)), TypeIDs::globalIndex_array3d_id },
       { std::type_index( typeid(real32_array3d)), TypeIDs::real32_array3d_id },
       { std::type_index( typeid(real64_array3d)), TypeIDs::real64_array3d_id },
+      { std::type_index( typeid(array3d< real64, RAJA::PERM_JKI >)), TypeIDs::real64_array3d_jki_id },
       { std::type_index( typeid(array3d< real64, RAJA::PERM_KJI >)), TypeIDs::real64_array3d_kji_id },
 
       { std::type_index( typeid(string)), TypeIDs::string_id },
@@ -919,6 +921,10 @@ private:
       case ( TypeIDs::real64_array3d_id ):
       {
         return lambda( real64_array3d(), real64( 1 ) );
+      }
+      case ( TypeIDs::real64_array3d_jki_id ):
+      {
+        return lambda( array3d< real64, RAJA::PERM_JKI >(), real64( 1 ) );
       }
       case ( TypeIDs::real64_array3d_kji_id ):
       {

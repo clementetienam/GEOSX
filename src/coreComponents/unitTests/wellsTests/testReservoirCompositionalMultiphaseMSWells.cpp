@@ -281,10 +281,10 @@ void testNumericalJacobian( CompositionalMultiphaseReservoir & solver,
         subRegion.getReference< array1d< real64 > >( CompositionalMultiphaseBase::viewKeyStruct::deltaPressureString() );
       pres.move( LvArray::MemorySpace::host, false );
 
-      arrayView2d< real64 const > const & compDens =
-        subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseBase::viewKeyStruct::globalCompDensityString() );
-      arrayView2d< real64 > const & dCompDens =
-        subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseBase::viewKeyStruct::deltaGlobalCompDensityString() );
+      arrayView2d< real64 const, compflow::USD_COMP_PROP > const & compDens =
+        subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseBase::viewKeyStruct::globalCompDensityString() );
+      arrayView2d< real64, compflow::USD_COMP_PROP > const & dCompDens =
+        subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseBase::viewKeyStruct::deltaGlobalCompDensityString() );
 
       compDens.move( LvArray::MemorySpace::host, false );
 
@@ -376,10 +376,10 @@ void testNumericalJacobian( CompositionalMultiphaseReservoir & solver,
       subRegion.getReference< array1d< real64 > >( CompositionalMultiphaseWell::viewKeyStruct::deltaPressureString() );
     wellElemPressure.move( LvArray::MemorySpace::host, false );
 
-    arrayView2d< real64 const > const & wellElemCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseWell::viewKeyStruct::globalCompDensityString() );
-    arrayView2d< real64 > const & dWellElemCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseWell::viewKeyStruct::deltaGlobalCompDensityString() );
+    arrayView2d< real64 const, compflow::USD_COMP_PROP > const & wellElemCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseWell::viewKeyStruct::globalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > const & dWellElemCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseWell::viewKeyStruct::deltaGlobalCompDensityString() );
     wellElemCompDens.move( LvArray::MemorySpace::host, false );
 
     arrayView1d< real64 const > const & connRate =

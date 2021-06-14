@@ -16,8 +16,6 @@
 #include "finiteVolume/FiniteVolumeManager.hpp"
 #include "finiteVolume/FluxApproximationBase.hpp"
 #include "mainInterface/initialization.hpp"
-#include "discretizationMethods/NumericalMethodsManager.hpp"
-#include "mainInterface/ProblemManager.hpp"
 #include "mainInterface/GeosxState.hpp"
 #include "physicsSolvers/PhysicsSolverManager.hpp"
 #include "physicsSolvers/fluidFlow/CompositionalMultiphaseFVM.hpp"
@@ -26,6 +24,7 @@
 using namespace geosx;
 using namespace geosx::dataRepository;
 using namespace geosx::constitutive;
+using namespace geosx::constitutive::multifluid;
 using namespace geosx::testing;
 
 CommandLineOptions g_commandLineOptions;
@@ -198,23 +197,23 @@ void testCompositionNumericalDerivatives( CompositionalMultiphaseFVM & solver,
     MultiFluidBase const & fluid = subRegion.getConstitutiveModel< MultiFluidBase >( fluidName );
     arrayView1d< string const > const & components = fluid.componentNames();
 
-    arrayView2d< real64 > & compDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & compDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
 
-    arrayView2d< real64 > & dCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & dCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
 
-    arrayView2d< real64 > & compFrac =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompFractionString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & compFrac =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompFractionString() );
 
-    arrayView3d< real64 > & dCompFrac_dCompDens =
-      subRegion.getReference< array3d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::dGlobalCompFraction_dGlobalCompDensityString() );
+    arrayView3d< real64, compflow::USD_COMP_PROP_DC > & dCompFrac_dCompDens =
+      subRegion.getReference< array3d< real64, compflow::LAYOUT_COMP_PROP_DC > >( CompositionalMultiphaseFVM::viewKeyStruct::dGlobalCompFraction_dGlobalCompDensityString() );
 
     // reset the solver state to zero out variable updates
     solver.resetStateToBeginningOfStep( domain );
 
     // make a copy of unperturbed values of component fractions
-    array2d< real64 > compFracOrig( subRegion.size(), NC );
+    array2d< real64, compflow::LAYOUT_COMP_PROP > compFracOrig( subRegion.size(), NC );
     compFracOrig.setValues< serialPolicy >( compFrac );
 
     // update component density and check derivatives
@@ -238,7 +237,7 @@ void testCompositionNumericalDerivatives( CompositionalMultiphaseFVM & solver,
       {
         SCOPED_TRACE( "Element " + std::to_string( ei ) );
 
-        auto dZ_dRho = invertLayout( dCompFrac_dCompDens[ei], NC, NC );
+        auto dZ_dRho = invertLayout( dCompFrac_dCompDens[ei].toSliceConst(), NC, NC );
         string var = "compDens[" + components[jc] + "]";
 
         checkDerivative( compFrac[ei].toSliceConst(),
@@ -281,26 +280,26 @@ void testPhaseVolumeFractionNumericalDerivatives( CompositionalMultiphaseFVM & s
     arrayView1d< real64 > & dPres =
       subRegion.getReference< array1d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaPressureString() );
 
-    arrayView2d< real64 > & compDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & compDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
 
-    arrayView2d< real64 > & dCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & dCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
 
-    arrayView2d< real64 > & phaseVolFrac =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::phaseVolumeFractionString() );
+    arrayView2d< real64, compflow::USD_PHASE_PROP > & phaseVolFrac =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_PHASE_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::phaseVolumeFractionString() );
 
-    arrayView2d< real64 > & dPhaseVolFrac_dPres =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseVolumeFraction_dPressureString() );
+    arrayView2d< real64, compflow::USD_PHASE_PROP > & dPhaseVolFrac_dPres =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_PHASE_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseVolumeFraction_dPressureString() );
 
-    arrayView3d< real64 > & dPhaseVolFrac_dCompDens =
-      subRegion.getReference< array3d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseVolumeFraction_dGlobalCompDensityString() );
+    arrayView3d< real64, compflow::USD_PHASE_PROP_DC > & dPhaseVolFrac_dCompDens =
+      subRegion.getReference< array3d< real64, compflow::LAYOUT_PHASE_PROP_DC > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseVolumeFraction_dGlobalCompDensityString() );
 
     // reset the solver state to zero out variable updates
     solver.resetStateToBeginningOfStep( domain );
 
     // make a copy of unperturbed values of component fractions
-    array2d< real64 > phaseVolFracOrig( subRegion.size(), NP );
+    array2d< real64, compflow::LAYOUT_PHASE_PROP > phaseVolFracOrig( subRegion.size(), NP );
     phaseVolFracOrig.setValues< serialPolicy >( phaseVolFrac );
 
     // update pressure and check derivatives
@@ -352,7 +351,7 @@ void testPhaseVolumeFractionNumericalDerivatives( CompositionalMultiphaseFVM & s
       {
         SCOPED_TRACE( "Element " + std::to_string( ei ) );
 
-        auto dS_dRho = invertLayout( dPhaseVolFrac_dCompDens[ei], NP, NC );
+        auto dS_dRho = invertLayout( dPhaseVolFrac_dCompDens[ei].toSliceConst(), NP, NC );
         string var = "compDens[" + components[jc] + "]";
 
         checkDerivative( phaseVolFrac[ei].toSliceConst(),
@@ -394,26 +393,26 @@ void testPhaseMobilityNumericalDerivatives( CompositionalMultiphaseFVM & solver,
     arrayView1d< real64 > & dPres =
       subRegion.getReference< array1d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaPressureString() );
 
-    arrayView2d< real64 > & compDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & compDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
 
-    arrayView2d< real64 > & dCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > & dCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
 
-    arrayView2d< real64 > & phaseMob =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::phaseMobilityString() );
+    arrayView2d< real64, compflow::USD_PHASE_PROP > & phaseMob =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_PHASE_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::phaseMobilityString() );
 
-    arrayView2d< real64 > & dPhaseMob_dPres =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseMobility_dPressureString() );
+    arrayView2d< real64, compflow::USD_PHASE_PROP > & dPhaseMob_dPres =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_PHASE_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseMobility_dPressureString() );
 
-    arrayView3d< real64 > & dPhaseMob_dCompDens =
-      subRegion.getReference< array3d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseMobility_dGlobalCompDensityString() );
+    arrayView3d< real64, compflow::USD_PHASE_PROP_DC > & dPhaseMob_dCompDens =
+      subRegion.getReference< array3d< real64, compflow::LAYOUT_PHASE_PROP_DC > >( CompositionalMultiphaseFVM::viewKeyStruct::dPhaseMobility_dGlobalCompDensityString() );
 
     // reset the solver state to zero out variable updates
     solver.resetStateToBeginningOfStep( domain );
 
     // make a copy of unperturbed values of component fractions
-    array2d< real64 > phaseVolFracOrig( subRegion.size(), NP );
+    array2d< real64, compflow::LAYOUT_PHASE_PROP > phaseVolFracOrig( subRegion.size(), NP );
     phaseVolFracOrig.setValues< serialPolicy >( phaseMob );
 
     // update pressure and check derivatives
@@ -465,7 +464,7 @@ void testPhaseMobilityNumericalDerivatives( CompositionalMultiphaseFVM & solver,
       {
         SCOPED_TRACE( "Element " + std::to_string( ei ) );
 
-        auto dS_dRho = invertLayout( dPhaseMob_dCompDens[ei], NP, NC );
+        auto dS_dRho = invertLayout( dPhaseMob_dCompDens[ei].toSliceConst(), NP, NC );
         string var = "compDens[" + components[jc] + "]";
 
         checkDerivative( phaseMob[ei].toSliceConst(),
@@ -530,12 +529,12 @@ void testNumericalJacobian( CompositionalMultiphaseFVM & solver,
     arrayView1d< real64 > const & dPres =
       subRegion.getReference< array1d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaPressureString() );
 
-    arrayView2d< real64 const > const & compDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
+    arrayView2d< real64 const, compflow::USD_COMP_PROP > const & compDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::globalCompDensityString() );
     compDens.move( LvArray::MemorySpace::host, false );
 
-    arrayView2d< real64 > const & dCompDens =
-      subRegion.getReference< array2d< real64 > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
+    arrayView2d< real64, compflow::USD_COMP_PROP > const & dCompDens =
+      subRegion.getReference< array2d< real64, compflow::LAYOUT_COMP_PROP > >( CompositionalMultiphaseFVM::viewKeyStruct::deltaGlobalCompDensityString() );
 
     for( localIndex ei = 0; ei < subRegion.size(); ++ei )
     {
